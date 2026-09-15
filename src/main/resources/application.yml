@@ -25,7 +25,7 @@ spring:
 
   # --- FreeMarker ---
   freemarker:
-    suffix: .ftl
+    suffix: .ftlh
     cache: false
     expose-request-attributes: true
 
