@@ -1,0 +1,57 @@
+databaseChangeLog:
+  - changeSet:
+      id: 005-create-follows-table
+      author: instajava
+      changes:
+        - createTable:
+            tableName: follows
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: follower_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: followee_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: follows
+            baseColumnNames: follower_id
+            constraintName: fk_follows_follower
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: follows
+            baseColumnNames: followee_id
+            constraintName: fk_follows_followee
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - addUniqueConstraint:
+            tableName: follows
+            columnNames: follower_id, followee_id
+            constraintName: uk_follows_follower_followee
+        - sql:
+            sql: "ALTER TABLE follows ADD CONSTRAINT chk_follows_no_self_follow CHECK (follower_id <> followee_id)"
+        - createIndex:
+            tableName: follows
+            indexName: idx_follows_followee_id
+            columns:
+              - column:
+                  name: followee_id

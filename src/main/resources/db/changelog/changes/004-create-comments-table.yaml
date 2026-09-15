@@ -1,0 +1,58 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-create-comments-table
+      author: instajava
+      changes:
+        - createTable:
+            tableName: comments
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: post_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: author_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: text
+                  type: VARCHAR(2000)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: comments
+            baseColumnNames: post_id
+            constraintName: fk_comments_post
+            referencedTableName: posts
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            baseTableName: comments
+            baseColumnNames: author_id
+            constraintName: fk_comments_author
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - createIndex:
+            tableName: comments
+            indexName: idx_comments_post_id_created_at
+            columns:
+              - column:
+                  name: post_id
+              - column:
+                  name: created_at
