@@ -1,6 +1,6 @@
 package com.example.instajava.config;
 
-import com.example.instajava.auth.CustomUserDetailsService;
+import com.example.instajava.service.impl.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
