@@ -10,7 +10,7 @@ spring:
     password:
 
   # --- JPA / Hibernate ---
-  # Schema is owned by Liquibase migrations, Hibernate only validates it matches the entities.
+
   jpa:
     hibernate:
       ddl-auto: validate
@@ -27,6 +27,7 @@ spring:
   freemarker:
     suffix: .ftl
     cache: false
+    expose-request-attributes: true
 
   # --- File uploads ---
   servlet:
@@ -37,6 +38,13 @@ spring:
 
 app:
   upload-dir: uploads
+
+# --- OpenAPI / Swagger ---
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
 
 # --- Logging ---
 logging:

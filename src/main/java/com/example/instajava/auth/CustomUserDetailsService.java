@@ -1,0 +1,39 @@
+package com.example.instajava.auth;
+
+import com.example.instajava.user.User;
+import com.example.instajava.user.UserRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+/**
+ * Looks users up by username OR email, since the login form accepts either.
+ */
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class CustomUserDetailsService implements UserDetailsService {
+
+    private final UserRepository userRepository;
+
+    @Override
+    public UserDetails loadUserByUsername(String usernameOrEmail) throws UsernameNotFoundException {
+        User user = userRepository.findByUsername(usernameOrEmail)
+                .or(() -> userRepository.findByEmail(usernameOrEmail))
+                .orElseThrow(() -> {
+                    log.warn("Login failed: no user found for '{}'", usernameOrEmail);
+                    return new UsernameNotFoundException("User not found: " + usernameOrEmail);
+                });
+
+        return org.springframework.security.core.userdetails.User
+                .withUsername(user.getUsername())
+                .password(user.getPasswordHash())
+                .authorities(List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_USER")))
+                .build();
+    }
+}
