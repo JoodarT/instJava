@@ -1,0 +1,19 @@
+package com.example.instajava.dto.response;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class LikeResponseDto {
+
+    private Long postId;
+    private long likesCount;
+    private boolean liked; // true — лайк поставлен, false — снят
+}
