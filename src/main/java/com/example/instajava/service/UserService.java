@@ -1,6 +1,9 @@
 package com.example.instajava.service;
 
 import com.example.instajava.dto.request.RegistrationRequest;
+import com.example.instajava.dto.response.UserProfileResponseDto;
+import com.example.instajava.dto.response.UserResponseDto;
+import com.example.instajava.dto.response.UserSummaryResponseDto;
 import com.example.instajava.models.User;
 
 import java.util.List;
@@ -10,48 +13,42 @@ public interface UserService {
 
     /**
      * Регистрация нового пользователя.
-     * @param request Данные для регистрации.
-     * @return Зарегистрированный пользователь.
-     * @throws DuplicateUserExceptio Если имя пользователя или email уже заняты.
      */
-    User register(RegistrationRequest request);
+    UserResponseDto register(RegistrationRequest request);
 
     /**
      * Поиск пользователей по имени, логину или email.
-     * @param query Строка поиска.
-     * @return Список найденных пользователей.
      */
-    List<User> search(String query);
+    List<UserSummaryResponseDto> search(String query);
 
     /**
-     * Получение пользователя по его ID.
-     * @param id ID пользователя.
-     * @return Optional пользователя.
+     * Получение DTO профиля пользователя со всеми счетчиками (для страницы /users/{username}).
      */
-    Optional<User> findById(Long id);
+    UserProfileResponseDto getUserProfile(String username);
 
     /**
-     * Получение пользователя по его логину (username).
-     * @param username Логин пользователя.
-     * @return Optional пользователя.
+     * Получение сущности пользователя по ID (для взаимодействия между сервисами).
      */
-    Optional<User> findByUsername(String username);
+    User findById(Long id);
 
     /**
-     * Получение пользователя по его email.
-     * @param email Email пользователя.
-     * @return Optional пользователя.
+     * Получение сущности пользователя по логину.
      */
-    Optional<User> findByEmail(String email);
+    User findByUsername(String username);
 
     /**
-     * Получение текущего авторизованного пользователя.
-     * (Реализация будет зависеть от Spring Security Context).
-     * @return Optional текущего пользователя.
+     * Получение сущности пользователя по email.
+     */
+    User findByEmail(String email);
+
+    /**
+     * Получение текущего авторизованного пользователя из контекста Spring Security.
+     * Возвращает Optional.empty(), если запрос делает неавторизованный гость.
      */
     Optional<User> getCurrentUser();
 
-
-
+    /**
+     * Проверка существования пользователя по ID.
+     */
     boolean existsUserById(Long userId);
 }
