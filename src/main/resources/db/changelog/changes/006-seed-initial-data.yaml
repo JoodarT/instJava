@@ -1,7 +1,7 @@
 databaseChangeLog:
   - changeSet:
       id: 006-seed-initial-data
-      author: instajava
+      author: Bolot Azatov
       changes:
         # ==========================================
         # 1. ПОЛЬЗОВАТЕЛИ (USERS)
@@ -205,3 +205,15 @@ databaseChangeLog:
               - column: { name: author_id, valueNumeric: 1 }
               - column: { name: text, value: "Looks awesome, need to visit it too!" }
               - column: { name: created_at, valueComputed: "CURRENT_TIMESTAMP" }
+
+  - changeSet:
+      id: 007-restart-sequences
+      author: Bolot Azatov
+      changes:
+        - sql:
+            sql: |
+              ALTER TABLE users ALTER COLUMN id RESTART WITH 10;
+              ALTER TABLE posts ALTER COLUMN id RESTART WITH 10;
+              ALTER TABLE comments ALTER COLUMN id RESTART WITH 10;
+              ALTER TABLE likes ALTER COLUMN id RESTART WITH 10;
+              ALTER TABLE follows ALTER COLUMN id RESTART WITH 10;
