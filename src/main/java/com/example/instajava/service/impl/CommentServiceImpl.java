@@ -32,6 +32,7 @@ public class CommentServiceImpl implements CommentService {
     @Transactional
     public CommentResponseDto addComment(Long postId, Long userId, String text) {
         if (text == null || text.isBlank()) {
+            log.warn("Попытка добавления пустого комментария к посту id={} пользователем id={}", postId, userId);
             throw new IllegalArgumentException("Текст комментария не может быть пустым");
         }
 
@@ -45,7 +46,7 @@ public class CommentServiceImpl implements CommentService {
                 .build();
 
         Comment savedComment = commentRepository.save(comment);
-        log.info("Пользователь '{}' оставил комментарий к посту id={}", author.getUsername(), postId);
+        log.info("Пользователь '{}' оставил комментарий id={} к посту id={}", author.getUsername(), savedComment.getId(), postId);
 
         boolean canDelete = post.getAuthor().getId().equals(userId);
         return CommentResponseDto.from(savedComment, canDelete);
@@ -53,6 +54,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public List<CommentResponseDto> getCommentsByPostId(Long postId) {
+        log.debug("Запрос комментариев для публикации id={}", postId);
         Post post = postService.getPostEntityById(postId);
         Optional<User> currentUserOpt = userService.getCurrentUser();
 
@@ -60,29 +62,38 @@ public class CommentServiceImpl implements CommentService {
                 .map(u -> u.getId().equals(post.getAuthor().getId()))
                 .orElse(false);
 
-        return commentRepository.findAllByPostIdOrderByCreatedAtAsc(postId).stream()
+        List<CommentResponseDto> comments = commentRepository.findAllByPostIdOrderByCreatedAtAsc(postId).stream()
                 .map(comment -> CommentResponseDto.from(comment, isPostAuthor))
                 .toList();
+
+        log.debug("Для публикации id={} получено {} комментариев", postId, comments.size());
+        return comments;
     }
 
     @Override
     @Transactional
     public void deleteComment(Long commentId, Long currentUserId) {
         Comment comment = commentRepository.findByIdWithPostAndAuthor(commentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Комментарий с id " + commentId + " не найден"));
+                .orElseThrow(() -> {
+                    log.warn("Комментарий с id={} не найден для удаления", commentId);
+                    return new ResourceNotFoundException("Комментарий с id " + commentId + " не найден");
+                });
 
         Long postAuthorId = comment.getPost().getAuthor().getId();
         if (!postAuthorId.equals(currentUserId)) {
-            log.warn("Пользователь id={} попытался удалить комментарий под чужим постом id={}", currentUserId, comment.getPost().getId());
+            log.warn("Пользователь id={} попытался удалить комментарий id={} под чужим постом id={}",
+                    currentUserId, commentId, comment.getPost().getId());
             throw new AccessDeniedException("Вы можете удалять комментарии только под своими публикациями");
         }
 
         commentRepository.delete(comment);
-        log.info("Комментарий id={} удален автором публикации id={}", commentId, currentUserId);
+        log.info("Комментарий id={} успешно удален автором публикации id={}", commentId, currentUserId);
     }
 
     @Override
     public long getPostCommentsCount(Long postId) {
-        return commentRepository.countByPostId(postId);
+        long count = commentRepository.countByPostId(postId);
+        log.debug("Количество комментариев для публикации id={}: {}", postId, count);
+        return count;
     }
 }

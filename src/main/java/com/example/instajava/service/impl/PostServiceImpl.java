@@ -56,36 +56,46 @@ public class PostServiceImpl implements PostService {
                 .build();
 
         Post savedPost = postRepository.save(post);
-        log.info("Пользователь '{}' создал публикацию id={}", author.getUsername(), savedPost.getId());
+        log.info("Пользователь '{}' (id={}) создал публикацию id={}", author.getUsername(), authorId, savedPost.getId());
 
         return PostResponseDto.from(savedPost, 0L, 0L, false, true);
     }
 
     @Override
     public PostResponseDto getPostById(Long postId) {
+        log.debug("Запрос публикации по id={}", postId);
         Post post = postRepository.findByIdWithAuthor(postId)
-                .orElseThrow(() -> new ResourceNotFoundException("Публикация с id " + postId + " не найдена"));
+                .orElseThrow(() -> {
+                    log.warn("Публикация с id={} не найдена", postId);
+                    return new ResourceNotFoundException("Публикация с id " + postId + " не найдена");
+                });
 
         return toDto(post);
     }
 
     @Override
     public List<PostResponseDto> getUserPosts(Long userId) {
+        log.debug("Запрос публикаций пользователя id={}", userId);
         if (!userService.existsUserById(userId)) {
+            log.warn("Запрос публикаций: пользователь с id={} не найден", userId);
             throw new ResourceNotFoundException("Пользователь с id " + userId + " не найден");
         }
 
         List<Post> posts = postRepository.findAllByAuthorIdOrderByCreatedAtDesc(userId);
+        log.debug("Получено {} публикаций для пользователя id={}", posts.size(), userId);
         return posts.stream().map(this::toDto).toList();
     }
 
     @Override
     public List<PostResponseDto> getFeed(Long currentUserId) {
+        log.debug("Формирование ленты новостей для пользователя id={}", currentUserId);
         if (!userService.existsUserById(currentUserId)) {
+            log.warn("Формирование ленты: пользователь с id={} не найден", currentUserId);
             throw new ResourceNotFoundException("Пользователь с id " + currentUserId + " не найден");
         }
 
         List<Post> feedPosts = postRepository.findFeedByUserId(currentUserId);
+        log.debug("Для пользователя id={} получено {} публикаций в ленте", currentUserId, feedPosts.size());
         return feedPosts.stream().map(this::toDto).toList();
     }
 
@@ -104,21 +114,28 @@ public class PostServiceImpl implements PostService {
         postRepository.delete(post);
 
         fileStorageService.deleteFile(imagePath);
-        log.info("Публикация id={} успешно удалена пользователем id={}", postId, currentUserId);
+        log.info("Публикация id={} успешно удалена автором id={}", postId, currentUserId);
     }
 
     @Override
     public long getUserPostCount(Long userId) {
         if (!userService.existsUserById(userId)) {
+            log.warn("Запрос количества публикаций: пользователь с id={} не найден", userId);
             throw new ResourceNotFoundException("Пользователь с id " + userId + " не найден");
         }
-        return postRepository.countByAuthorId(userId);
+        long count = postRepository.countByAuthorId(userId);
+        log.debug("Количество публикаций пользователя id={}: {}", userId, count);
+        return count;
     }
 
     @Override
     public Post getPostEntityById(Long postId) {
+        log.debug("Поиск сущности поста по id={}", postId);
         return postRepository.findById(postId)
-                .orElseThrow(() -> new ResourceNotFoundException("Публикация с id " + postId + " не найдена"));
+                .orElseThrow(() -> {
+                    log.warn("Сущность поста с id={} не найдена", postId);
+                    return new ResourceNotFoundException("Публикация с id " + postId + " не найдена");
+                });
     }
 
     private PostResponseDto toDto(Post post) {

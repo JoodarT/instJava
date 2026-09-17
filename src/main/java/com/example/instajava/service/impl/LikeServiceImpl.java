@@ -26,6 +26,7 @@ public class LikeServiceImpl implements LikeService {
     @Transactional
     public boolean likePost(Long postId, Long userId) {
         if (postId == null || userId == null) {
+            log.warn("Некорректная попытка поставить лайк: postId={}, userId={}", postId, userId);
             return false;
         }
 
@@ -43,7 +44,7 @@ public class LikeServiceImpl implements LikeService {
                 .build();
 
         likeRepository.save(like);
-        log.info("Пользователь '{}' поставил лайк посту id={}", user.getUsername(), postId);
+        log.info("Пользователь '{}' (id={}) поставил лайк посту id={}", user.getUsername(), userId, postId);
         return true;
     }
 
@@ -51,10 +52,12 @@ public class LikeServiceImpl implements LikeService {
     @Transactional
     public boolean unlikePost(Long postId, Long userId) {
         if (postId == null || userId == null) {
+            log.warn("Некорректная попытка убрать лайк: postId={}, userId={}", postId, userId);
             return false;
         }
 
         if (!likeRepository.existsByUserIdAndPostId(userId, postId)) {
+            log.debug("Лайк от пользователя id={} к посту id={} не найден для удаления", userId, postId);
             return false;
         }
 
@@ -65,7 +68,9 @@ public class LikeServiceImpl implements LikeService {
 
     @Override
     public long getPostLikesCount(Long postId) {
-        return likeRepository.countByPostId(postId);
+        long count = likeRepository.countByPostId(postId);
+        log.debug("Количество лайков у поста id={}: {}", postId, count);
+        return count;
     }
 
     @Override
@@ -73,6 +78,8 @@ public class LikeServiceImpl implements LikeService {
         if (postId == null || userId == null) {
             return false;
         }
-        return likeRepository.existsByUserIdAndPostId(userId, postId);
+        boolean liked = likeRepository.existsByUserIdAndPostId(userId, postId);
+        log.debug("Проверка лайка: postId={}, userId={}, isLiked={}", postId, userId, liked);
+        return liked;
     }
 }

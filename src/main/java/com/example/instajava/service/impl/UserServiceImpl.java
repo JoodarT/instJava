@@ -46,10 +46,14 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserResponseDto register(RegistrationRequest request) {
+        log.debug("Попытка регистрации нового пользователя: username='{}', email='{}'", request.username(), request.email());
+
         if (userRepository.existsByUsername(request.username())) {
+            log.warn("Регистрация отклонена: имя пользователя '{}' уже занято", request.username());
             throw new DuplicateUserException("Username '" + request.username() + "' is already taken");
         }
         if (userRepository.existsByEmail(request.email())) {
+            log.warn("Регистрация отклонена: email '{}' уже зарегистрирован", request.email());
             throw new DuplicateUserException("Email '" + request.email() + "' is already registered");
         }
 
@@ -61,21 +65,27 @@ public class UserServiceImpl implements UserService {
                 .build();
 
         User saved = userRepository.save(user);
+        log.info("Новый пользователь успешно зарегистрирован: id={}, username='{}'", saved.getId(), saved.getUsername());
         return UserResponseDto.fromEntity(saved);
     }
 
     @Override
     public List<UserSummaryResponseDto> search(String query) {
         if (query == null || query.isBlank()) {
+            log.debug("Поисковый запрос пользователей пуст");
             return List.of();
         }
-        return userRepository.search(query.trim()).stream()
+        log.debug("Выполняется поиск пользователей по запросу: '{}'", query);
+        List<UserSummaryResponseDto> results = userRepository.search(query.trim()).stream()
                 .map(UserSummaryResponseDto::fromEntity)
                 .toList();
+        log.debug("По запросу '{}' найдено пользователей: {}", query, results.size());
+        return results;
     }
 
     @Override
     public UserProfileResponseDto getUserProfile(String username) {
+        log.debug("Запрос профиля пользователя: '{}'", username);
         User targetUser = findByUsername(username);
 
         long postsCount = postService.getUserPostCount(targetUser.getId());
@@ -92,6 +102,9 @@ public class UserServiceImpl implements UserService {
                 .map(cur -> followService.isFollowing(cur.getId(), targetUser.getId()))
                 .orElse(false);
 
+        log.debug("Профиль пользователя '{}' сформирован: posts={}, followers={}, following={}, isFollowing={}, isCurrent={}",
+                username, postsCount, followersCount, followingCount, isFollowing, isCurrentUser);
+
         return UserProfileResponseDto.from(
                 targetUser,
                 postsCount,
@@ -105,28 +118,43 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findByEmail(String email) {
         if (email == null || email.isBlank()) {
+            log.warn("Попытка поиска пользователя с пустым email");
             throw new ResourceNotFoundException("Email не может быть пустым");
         }
+        log.debug("Поиск пользователя по email: '{}'", email);
         return userRepository.findByEmail(email.trim())
-                .orElseThrow(() -> new ResourceNotFoundException("Пользователь с email '" + email + "' не найден"));
+                .orElseThrow(() -> {
+                    log.warn("Пользователь с email '{}' не найден", email);
+                    return new ResourceNotFoundException("Пользователь с email '" + email + "' не найден");
+                });
     }
 
     @Override
     public User findById(Long id) {
         if (id == null) {
+            log.warn("Попытка поиска пользователя с id=null");
             throw new ResourceNotFoundException("ID пользователя не может быть null");
         }
+        log.debug("Поиск пользователя по id: {}", id);
         return userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Пользователь с id " + id + " не найден"));
+                .orElseThrow(() -> {
+                    log.warn("Пользователь с id={} не найден", id);
+                    return new ResourceNotFoundException("Пользователь с id " + id + " не найден");
+                });
     }
 
     @Override
     public User findByUsername(String username) {
         if (username == null || username.isBlank()) {
+            log.warn("Попытка поиска пользователя с пустым username");
             throw new ResourceNotFoundException("Username не может быть пустым");
         }
+        log.debug("Поиск пользователя по username: '{}'", username);
         return userRepository.findByUsername(username.trim())
-                .orElseThrow(() -> new ResourceNotFoundException("Пользователь '" + username + "' не найден"));
+                .orElseThrow(() -> {
+                    log.warn("Пользователь с username '{}' не найден", username);
+                    return new ResourceNotFoundException("Пользователь '" + username + "' не найден");
+                });
     }
 
     @Override
