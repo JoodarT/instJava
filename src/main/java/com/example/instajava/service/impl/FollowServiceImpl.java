@@ -1,5 +1,6 @@
 package com.example.instajava.service.impl;
 
+import com.example.instajava.dto.response.FollowResponseDto;
 import com.example.instajava.exception.ResourceNotFoundException;
 import com.example.instajava.models.Follow;
 import com.example.instajava.models.User;
@@ -22,9 +23,36 @@ public class FollowServiceImpl implements FollowService {
 
     @Override
     @Transactional
+    public FollowResponseDto followUser(Long followeeId) {
+        User currentUser = userService.getRequiredCurrentUser();
+        boolean success = followUser(currentUser.getId(), followeeId);
+        long followersCount = getUserFollowerCount(followeeId);
+
+        return FollowResponseDto.builder()
+                .userId(followeeId)
+                .following(true)
+                .followersCount(followersCount)
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public FollowResponseDto unfollowUser(Long followeeId) {
+        User currentUser = userService.getRequiredCurrentUser();
+        boolean success = unfollowUser(currentUser.getId(), followeeId);
+        long followersCount = getUserFollowerCount(followeeId);
+
+        return FollowResponseDto.builder()
+                .userId(followeeId)
+                .following(false)
+                .followersCount(followersCount)
+                .build();
+    }
+
+    @Override
+    @Transactional
     public boolean followUser(Long followerId, Long followeeId) {
         if (followerId == null || followeeId == null || followerId.equals(followeeId)) {
-            log.warn("Некорректная попытка подписки: followerId={}, followeeId={}", followerId, followeeId);
             return false;
         }
 
@@ -32,8 +60,6 @@ public class FollowServiceImpl implements FollowService {
         User followee = userService.findById(followeeId);
 
         if (followRepository.existsByFollowerIdAndFolloweeId(follower.getId(), followee.getId())) {
-            log.debug("Пользователь '{}' (id={}) уже подписан на '{}' (id={})",
-                    follower.getUsername(), followerId, followee.getUsername(), followeeId);
             return false;
         }
 
@@ -43,31 +69,24 @@ public class FollowServiceImpl implements FollowService {
                 .build();
 
         followRepository.save(follow);
-        log.info("Пользователь '{}' (id={}) успешно подписался на '{}' (id={})",
-                follower.getUsername(), followerId, followee.getUsername(), followeeId);
+        log.info("Пользователь '{}' подписался на '{}'", follower.getUsername(), followee.getUsername());
         return true;
     }
 
     @Override
     public long getUserFollowerCount(Long userId) {
         if (!userService.existsUserById(userId)) {
-            log.warn("Запрос количества подписчиков: пользователь с id={} не найден", userId);
             throw new ResourceNotFoundException("Пользователь с id " + userId + " не найден");
         }
-        long count = followRepository.countByFolloweeId(userId);
-        log.debug("Количество подписчиков пользователя id={}: {}", userId, count);
-        return count;
+        return followRepository.countByFolloweeId(userId);
     }
 
     @Override
     public long getUserFollowingCount(Long userId) {
         if (!userService.existsUserById(userId)) {
-            log.warn("Запрос количества подписок: пользователь с id={} не найден", userId);
             throw new ResourceNotFoundException("Пользователь с id " + userId + " не найден");
         }
-        long count = followRepository.countByFollowerId(userId);
-        log.debug("Количество подписок пользователя id={}: {}", userId, count);
-        return count;
+        return followRepository.countByFollowerId(userId);
     }
 
     @Override
@@ -75,26 +94,22 @@ public class FollowServiceImpl implements FollowService {
         if (followerId == null || followeeId == null) {
             return false;
         }
-        boolean following = followRepository.existsByFollowerIdAndFolloweeId(followerId, followeeId);
-        log.debug("Проверка подписки followerId={} -> followeeId={}: {}", followerId, followeeId, following);
-        return following;
+        return followRepository.existsByFollowerIdAndFolloweeId(followerId, followeeId);
     }
 
     @Override
     @Transactional
     public boolean unfollowUser(Long followerId, Long followeeId) {
         if (followerId == null || followeeId == null) {
-            log.warn("Некорректная попытка отписки: followerId={}, followeeId={}", followerId, followeeId);
             return false;
         }
 
         if (!followRepository.existsByFollowerIdAndFolloweeId(followerId, followeeId)) {
-            log.debug("Подписка не найдена для удаления: followerId={}, followeeId={}", followerId, followeeId);
             return false;
         }
 
         followRepository.deleteByFollowerIdAndFolloweeId(followerId, followeeId);
-        log.info("Пользователь id={} успешно отписался от пользователя id={}", followerId, followeeId);
+        log.info("Пользователь id={} отписался от id={}", followerId, followeeId);
         return true;
     }
 }

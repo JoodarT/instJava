@@ -1,5 +1,6 @@
 package com.example.instajava.service.impl;
 
+import com.example.instajava.dto.request.PostCreateRequestDto;
 import com.example.instajava.dto.response.PostResponseDto;
 import com.example.instajava.exception.ResourceNotFoundException;
 import com.example.instajava.models.Post;
@@ -45,6 +46,13 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
+    public PostResponseDto createPost(PostCreateRequestDto request) {
+        User currentUser = userService.getRequiredCurrentUser();
+        return createPost(request.getImage(), request.getCaption(), currentUser.getId());
+    }
+
+    @Override
+    @Transactional
     public PostResponseDto createPost(MultipartFile image, String caption, Long authorId) {
         User author = userService.findById(authorId);
         String imagePath = fileStorageService.saveFile(image);
@@ -56,47 +64,58 @@ public class PostServiceImpl implements PostService {
                 .build();
 
         Post savedPost = postRepository.save(post);
-        log.info("Пользователь '{}' (id={}) создал публикацию id={}", author.getUsername(), authorId, savedPost.getId());
+        log.info("Пользователь '{}' создал публикацию id={}", author.getUsername(), savedPost.getId());
 
         return PostResponseDto.from(savedPost, 0L, 0L, false, true);
     }
 
     @Override
     public PostResponseDto getPostById(Long postId) {
-        log.debug("Запрос публикации по id={}", postId);
+        log.debug("Запрос публикации id={}", postId);
         Post post = postRepository.findByIdWithAuthor(postId)
-                .orElseThrow(() -> {
-                    log.warn("Публикация с id={} не найдена", postId);
-                    return new ResourceNotFoundException("Публикация с id " + postId + " не найдена");
-                });
+                .orElseThrow(() -> new ResourceNotFoundException("Публикация с id " + postId + " не найдена"));
 
         return toDto(post);
     }
 
     @Override
     public List<PostResponseDto> getUserPosts(Long userId) {
-        log.debug("Запрос публикаций пользователя id={}", userId);
         if (!userService.existsUserById(userId)) {
-            log.warn("Запрос публикаций: пользователь с id={} не найден", userId);
             throw new ResourceNotFoundException("Пользователь с id " + userId + " не найден");
         }
+        return postRepository.findAllByAuthorIdOrderByCreatedAtDesc(userId).stream()
+                .map(this::toDto)
+                .toList();
+    }
 
-        List<Post> posts = postRepository.findAllByAuthorIdOrderByCreatedAtDesc(userId);
-        log.debug("Получено {} публикаций для пользователя id={}", posts.size(), userId);
-        return posts.stream().map(this::toDto).toList();
+    @Override
+    public List<PostResponseDto> getUserPosts(String username) {
+        User user = userService.findByUsername(username);
+        return getUserPosts(user.getId());
+    }
+
+    @Override
+    public List<PostResponseDto> getFeed() {
+        User currentUser = userService.getRequiredCurrentUser();
+        return getFeed(currentUser.getId());
     }
 
     @Override
     public List<PostResponseDto> getFeed(Long currentUserId) {
-        log.debug("Формирование ленты новостей для пользователя id={}", currentUserId);
         if (!userService.existsUserById(currentUserId)) {
-            log.warn("Формирование ленты: пользователь с id={} не найден", currentUserId);
             throw new ResourceNotFoundException("Пользователь с id " + currentUserId + " не найден");
         }
+        log.debug("Формирование ленты новостей для id={}", currentUserId);
+        return postRepository.findFeedByUserId(currentUserId).stream()
+                .map(this::toDto)
+                .toList();
+    }
 
-        List<Post> feedPosts = postRepository.findFeedByUserId(currentUserId);
-        log.debug("Для пользователя id={} получено {} публикаций в ленте", currentUserId, feedPosts.size());
-        return feedPosts.stream().map(this::toDto).toList();
+    @Override
+    @Transactional
+    public void deletePost(Long postId) {
+        User currentUser = userService.getRequiredCurrentUser();
+        deletePost(postId, currentUser.getId());
     }
 
     @Override
@@ -105,37 +124,28 @@ public class PostServiceImpl implements PostService {
         Post post = getPostEntityById(postId);
 
         if (!post.getAuthor().getId().equals(currentUserId)) {
-            log.warn("Пользователь id={} попытался удалить чужую публикацию id={}", currentUserId, postId);
+            log.warn("Пользователь id={} попытался удалить чужой пост id={}", currentUserId, postId);
             throw new AccessDeniedException("Вы можете удалять только свои публикации");
         }
 
         String imagePath = post.getImagePath();
-
         postRepository.delete(post);
-
         fileStorageService.deleteFile(imagePath);
-        log.info("Публикация id={} успешно удалена автором id={}", postId, currentUserId);
+        log.info("Публикация id={} удалена автором id={}", postId, currentUserId);
     }
 
     @Override
     public long getUserPostCount(Long userId) {
         if (!userService.existsUserById(userId)) {
-            log.warn("Запрос количества публикаций: пользователь с id={} не найден", userId);
             throw new ResourceNotFoundException("Пользователь с id " + userId + " не найден");
         }
-        long count = postRepository.countByAuthorId(userId);
-        log.debug("Количество публикаций пользователя id={}: {}", userId, count);
-        return count;
+        return postRepository.countByAuthorId(userId);
     }
 
     @Override
     public Post getPostEntityById(Long postId) {
-        log.debug("Поиск сущности поста по id={}", postId);
         return postRepository.findById(postId)
-                .orElseThrow(() -> {
-                    log.warn("Сущность поста с id={} не найдена", postId);
-                    return new ResourceNotFoundException("Публикация с id " + postId + " не найдена");
-                });
+                .orElseThrow(() -> new ResourceNotFoundException("Публикация с id " + postId + " не найдена"));
     }
 
     private PostResponseDto toDto(Post post) {

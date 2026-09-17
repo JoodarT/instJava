@@ -1,5 +1,6 @@
 package com.example.instajava.service.impl;
 
+import com.example.instajava.dto.request.CommentCreateRequestDto;
 import com.example.instajava.dto.response.CommentResponseDto;
 import com.example.instajava.exception.ResourceNotFoundException;
 import com.example.instajava.models.Comment;
@@ -30,9 +31,15 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional
+    public CommentResponseDto addComment(Long postId, CommentCreateRequestDto request) {
+        User currentUser = userService.getRequiredCurrentUser();
+        return addComment(postId, currentUser.getId(), request.getText());
+    }
+
+    @Override
+    @Transactional
     public CommentResponseDto addComment(Long postId, Long userId, String text) {
         if (text == null || text.isBlank()) {
-            log.warn("Попытка добавления пустого комментария к посту id={} пользователем id={}", postId, userId);
             throw new IllegalArgumentException("Текст комментария не может быть пустым");
         }
 
@@ -62,27 +69,27 @@ public class CommentServiceImpl implements CommentService {
                 .map(u -> u.getId().equals(post.getAuthor().getId()))
                 .orElse(false);
 
-        List<CommentResponseDto> comments = commentRepository.findAllByPostIdOrderByCreatedAtAsc(postId).stream()
+        return commentRepository.findAllByPostIdOrderByCreatedAtAsc(postId).stream()
                 .map(comment -> CommentResponseDto.from(comment, isPostAuthor))
                 .toList();
+    }
 
-        log.debug("Для публикации id={} получено {} комментариев", postId, comments.size());
-        return comments;
+    @Override
+    @Transactional
+    public void deleteComment(Long commentId) {
+        User currentUser = userService.getRequiredCurrentUser();
+        deleteComment(commentId, currentUser.getId());
     }
 
     @Override
     @Transactional
     public void deleteComment(Long commentId, Long currentUserId) {
         Comment comment = commentRepository.findByIdWithPostAndAuthor(commentId)
-                .orElseThrow(() -> {
-                    log.warn("Комментарий с id={} не найден для удаления", commentId);
-                    return new ResourceNotFoundException("Комментарий с id " + commentId + " не найден");
-                });
+                .orElseThrow(() -> new ResourceNotFoundException("Комментарий с id " + commentId + " не найден"));
 
         Long postAuthorId = comment.getPost().getAuthor().getId();
         if (!postAuthorId.equals(currentUserId)) {
-            log.warn("Пользователь id={} попытался удалить комментарий id={} под чужим постом id={}",
-                    currentUserId, commentId, comment.getPost().getId());
+            log.warn("Пользователь id={} попытался удалить комментарий под чужим постом id={}", currentUserId, comment.getPost().getId());
             throw new AccessDeniedException("Вы можете удалять комментарии только под своими публикациями");
         }
 
@@ -92,8 +99,6 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public long getPostCommentsCount(Long postId) {
-        long count = commentRepository.countByPostId(postId);
-        log.debug("Количество комментариев для публикации id={}: {}", postId, count);
-        return count;
+        return commentRepository.countByPostId(postId);
     }
 }

@@ -1,5 +1,6 @@
 package com.example.instajava.service.impl;
 
+import com.example.instajava.dto.response.LikeResponseDto;
 import com.example.instajava.models.Like;
 import com.example.instajava.models.Post;
 import com.example.instajava.models.User;
@@ -24,14 +25,37 @@ public class LikeServiceImpl implements LikeService {
 
     @Override
     @Transactional
+    public LikeResponseDto toggleLike(Long postId) {
+        User currentUser = userService.getRequiredCurrentUser();
+        Long userId = currentUser.getId();
+
+        boolean alreadyLiked = isPostLikedByUser(postId, userId);
+
+        if (alreadyLiked) {
+            unlikePost(postId, userId);
+            log.info("Пользователь '{}' убрал лайк с поста id={}", currentUser.getUsername(), postId);
+        } else {
+            likePost(postId, userId);
+            log.info("Пользователь '{}' поставил лайк посту id={}", currentUser.getUsername(), postId);
+        }
+
+        long updatedLikesCount = getPostLikesCount(postId);
+
+        return LikeResponseDto.builder()
+                .postId(postId)
+                .likesCount(updatedLikesCount)
+                .liked(!alreadyLiked)
+                .build();
+    }
+
+    @Override
+    @Transactional
     public boolean likePost(Long postId, Long userId) {
         if (postId == null || userId == null) {
-            log.warn("Некорректная попытка поставить лайк: postId={}, userId={}", postId, userId);
             return false;
         }
 
         if (likeRepository.existsByUserIdAndPostId(userId, postId)) {
-            log.debug("Пользователь id={} уже поставил лайк посту id={}", userId, postId);
             return false;
         }
 
@@ -44,7 +68,6 @@ public class LikeServiceImpl implements LikeService {
                 .build();
 
         likeRepository.save(like);
-        log.info("Пользователь '{}' (id={}) поставил лайк посту id={}", user.getUsername(), userId, postId);
         return true;
     }
 
@@ -52,25 +75,20 @@ public class LikeServiceImpl implements LikeService {
     @Transactional
     public boolean unlikePost(Long postId, Long userId) {
         if (postId == null || userId == null) {
-            log.warn("Некорректная попытка убрать лайк: postId={}, userId={}", postId, userId);
             return false;
         }
 
         if (!likeRepository.existsByUserIdAndPostId(userId, postId)) {
-            log.debug("Лайк от пользователя id={} к посту id={} не найден для удаления", userId, postId);
             return false;
         }
 
         likeRepository.deleteByUserIdAndPostId(userId, postId);
-        log.info("Пользователь id={} убрал лайк с поста id={}", userId, postId);
         return true;
     }
 
     @Override
     public long getPostLikesCount(Long postId) {
-        long count = likeRepository.countByPostId(postId);
-        log.debug("Количество лайков у поста id={}: {}", postId, count);
-        return count;
+        return likeRepository.countByPostId(postId);
     }
 
     @Override
@@ -78,8 +96,6 @@ public class LikeServiceImpl implements LikeService {
         if (postId == null || userId == null) {
             return false;
         }
-        boolean liked = likeRepository.existsByUserIdAndPostId(userId, postId);
-        log.debug("Проверка лайка: postId={}, userId={}, isLiked={}", postId, userId, liked);
-        return liked;
+        return likeRepository.existsByUserIdAndPostId(userId, postId);
     }
 }
