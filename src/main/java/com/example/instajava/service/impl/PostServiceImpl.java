@@ -6,11 +6,11 @@ import com.example.instajava.exception.ResourceNotFoundException;
 import com.example.instajava.models.Post;
 import com.example.instajava.models.User;
 import com.example.instajava.repository.PostRepository;
+import com.example.instajava.repository.UserRepository;
 import com.example.instajava.service.CommentService;
 import com.example.instajava.service.FileStorageService;
 import com.example.instajava.service.LikeService;
 import com.example.instajava.service.PostService;
-import com.example.instajava.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.access.AccessDeniedException;
@@ -27,19 +27,22 @@ import java.util.Optional;
 public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
-    private final UserService userService;
+    private final UserRepository userRepository;
     private final FileStorageService fileStorageService;
+    private final CurrentUserProvider currentUserProvider;
     private final LikeService likeService;
     private final CommentService commentService;
 
     public PostServiceImpl(PostRepository postRepository,
-                           UserService userService,
-                           FileStorageService fileStorageService,
-                           @Lazy LikeService likeService,
-                           @Lazy CommentService commentService) {
+                            UserRepository userRepository,
+                            FileStorageService fileStorageService,
+                            CurrentUserProvider currentUserProvider,
+                            @Lazy LikeService likeService,
+                            @Lazy CommentService commentService) {
         this.postRepository = postRepository;
-        this.userService = userService;
+        this.userRepository = userRepository;
         this.fileStorageService = fileStorageService;
+        this.currentUserProvider = currentUserProvider;
         this.likeService = likeService;
         this.commentService = commentService;
     }
@@ -47,14 +50,14 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional
     public PostResponseDto createPost(PostCreateRequestDto request) {
-        User currentUser = userService.getRequiredCurrentUser();
+        User currentUser = currentUserProvider.getRequiredCurrentUser();
         return createPost(request.getImage(), request.getCaption(), currentUser.getId());
     }
 
     @Override
     @Transactional
     public PostResponseDto createPost(MultipartFile image, String caption, Long authorId) {
-        User author = userService.findById(authorId);
+        User author = findUserOrThrow(authorId);
         String imagePath = fileStorageService.saveFile(image);
 
         Post post = Post.builder()
@@ -80,7 +83,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public List<PostResponseDto> getUserPosts(Long userId) {
-        if (!userService.existsUserById(userId)) {
+        if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("Пользователь с id " + userId + " не найден");
         }
         return postRepository.findAllByAuthorIdOrderByCreatedAtDesc(userId).stream()
@@ -90,19 +93,19 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public List<PostResponseDto> getUserPosts(String username) {
-        User user = userService.findByUsername(username);
+        User user = findUserByUsernameOrThrow(username);
         return getUserPosts(user.getId());
     }
 
     @Override
     public List<PostResponseDto> getFeed() {
-        User currentUser = userService.getRequiredCurrentUser();
+        User currentUser = currentUserProvider.getRequiredCurrentUser();
         return getFeed(currentUser.getId());
     }
 
     @Override
     public List<PostResponseDto> getFeed(Long currentUserId) {
-        if (!userService.existsUserById(currentUserId)) {
+        if (!userRepository.existsById(currentUserId)) {
             throw new ResourceNotFoundException("Пользователь с id " + currentUserId + " не найден");
         }
         log.debug("Формирование ленты новостей для id={}", currentUserId);
@@ -114,7 +117,7 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional
     public void deletePost(Long postId) {
-        User currentUser = userService.getRequiredCurrentUser();
+        User currentUser = currentUserProvider.getRequiredCurrentUser();
         deletePost(postId, currentUser.getId());
     }
 
@@ -136,7 +139,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public long getUserPostCount(Long userId) {
-        if (!userService.existsUserById(userId)) {
+        if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("Пользователь с id " + userId + " не найден");
         }
         return postRepository.countByAuthorId(userId);
@@ -148,11 +151,21 @@ public class PostServiceImpl implements PostService {
                 .orElseThrow(() -> new ResourceNotFoundException("Публикация с id " + postId + " не найдена"));
     }
 
+    private User findUserOrThrow(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Пользователь с id " + userId + " не найден"));
+    }
+
+    private User findUserByUsernameOrThrow(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Пользователь '" + username + "' не найден"));
+    }
+
     private PostResponseDto toDto(Post post) {
         long likesCount = likeService.getPostLikesCount(post.getId());
         long commentsCount = commentService.getPostCommentsCount(post.getId());
 
-        Optional<User> currentUserOpt = userService.getCurrentUser();
+        Optional<User> currentUserOpt = currentUserProvider.getCurrentUser();
 
         boolean isLikedByCurrentUser = currentUserOpt
                 .map(cur -> likeService.isPostLikedByUser(post.getId(), cur.getId()))
