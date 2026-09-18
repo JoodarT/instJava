@@ -159,7 +159,11 @@
             fetch(url, {method: 'POST', headers: authHeaders()})
                 .then(function (res) {
                     if (!res.ok) {
-                        throw new Error('follow toggle failed');
+                        return res.json().then(function (err) {
+                            throw err;
+                        }).catch(function () {
+                            throw new Error('follow toggle failed');
+                        });
                     }
                     return res.json();
                 })
@@ -167,13 +171,14 @@
                     followBtn.dataset.following = data.following;
                     followBtn.classList.toggle('following', data.following);
                     followBtn.textContent = data.following ? 'Отписаться' : 'Подписаться';
-                    const statValues = document.querySelectorAll('.profile-stats strong');
-                    if (statValues.length >= 2) {
-                        statValues[1].textContent = data.followersCount;
+
+                    const followersCountEl = document.querySelector('.followers-count');
+                    if (followersCountEl) {
+                        followersCountEl.textContent = data.followersCount;
                     }
                 })
-                .catch(function () {
-                    alert('Не удалось выполнить действие. Возможно, нужно войти в систему.');
+                .catch(function (err) {
+                    alert((err && err.message) || 'Не удалось выполнить действие. Возможно, нужно войти в систему.');
                 });
         }
     });

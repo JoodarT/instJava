@@ -23,9 +23,9 @@
             </#if>
 
             <div class="profile-stats">
-                <span><strong>${profile.postsCount}</strong> публикаций</span>
-                <span><strong>${profile.followersCount}</strong> подписчиков</span>
-                <span><strong>${profile.followingCount}</strong> подписок</span>
+                <span><strong class="posts-count">${profile.postsCount}</strong> публикаций</span>
+                <span><strong class="followers-count">${profile.followersCount}</strong> подписчиков</span>
+                <span><strong class="following-count">${profile.followingCount}</strong> подписок</span>
             </div>
         </div>
     </section>

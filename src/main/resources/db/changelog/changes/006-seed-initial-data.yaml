@@ -70,7 +70,6 @@ databaseChangeLog:
         # ==========================================
         # 2. ПОДПИСКИ (FOLLOWS)
         # ==========================================
-        # John подписан на Jane и Alex
         - insert:
             tableName: follows
             columns:
@@ -84,7 +83,6 @@ databaseChangeLog:
               - column: { name: followee_id, valueNumeric: 3 }
               - column: { name: created_at, valueComputed: "CURRENT_TIMESTAMP" }
 
-        # Jane подписана на John и Kate
         - insert:
             tableName: follows
             columns:
@@ -98,7 +96,6 @@ databaseChangeLog:
               - column: { name: followee_id, valueNumeric: 4 }
               - column: { name: created_at, valueComputed: "CURRENT_TIMESTAMP" }
 
-        # Alex и Kate подписаны на John
         - insert:
             tableName: follows
             columns:
@@ -112,7 +109,6 @@ databaseChangeLog:
               - column: { name: followee_id, valueNumeric: 1 }
               - column: { name: created_at, valueComputed: "CURRENT_TIMESTAMP" }
 
-        # Mike подписан на John и Jane; John и Kate подписаны на Mike
         - insert:
             tableName: follows
             columns:
@@ -189,7 +185,6 @@ databaseChangeLog:
         # ==========================================
         # 4. ЛАЙКИ (LIKES)
         # ==========================================
-        # Пост 1 (John) лайкнули Jane, Alex, Kate
         - insert:
             tableName: likes
             columns:
@@ -209,7 +204,6 @@ databaseChangeLog:
               - column: { name: post_id, valueNumeric: 1 }
               - column: { name: created_at, valueComputed: "CURRENT_TIMESTAMP" }
 
-        # Пост 3 (Jane) лайкнули John и Alex
         - insert:
             tableName: likes
             columns:
@@ -223,7 +217,6 @@ databaseChangeLog:
               - column: { name: post_id, valueNumeric: 3 }
               - column: { name: created_at, valueComputed: "CURRENT_TIMESTAMP" }
 
-        # Пост 5 (Mike) лайкнули John и Jane
         - insert:
             tableName: likes
             columns:

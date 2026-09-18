@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -61,9 +62,10 @@ public class PostServiceImpl implements PostService {
                 .author(author)
                 .imagePath(imagePath)
                 .caption(caption != null ? caption.trim() : null)
+                .createdAt(LocalDateTime.now())
                 .build();
 
-        Post savedPost = postRepository.save(post);
+        Post savedPost = postRepository.saveAndFlush(post);
         log.info("Пользователь '{}' создал публикацию id={}", author.getUsername(), savedPost.getId());
 
         return PostResponseDto.from(savedPost, 0L, 0L, false, true);

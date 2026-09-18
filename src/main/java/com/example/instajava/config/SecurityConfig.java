@@ -43,10 +43,10 @@ public class SecurityConfig {
                                 "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET,
-                                "/api/users/*",
-                                "/api/users/*/posts",
-                                "/api/posts/*",
-                                "/api/posts/*/comments"
+                                "/api/users/search",
+                                "/api/users/**",
+                                "/api/posts/{postId:[0-9]+}",
+                                "/api/posts/{postId:[0-9]+}/comments"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

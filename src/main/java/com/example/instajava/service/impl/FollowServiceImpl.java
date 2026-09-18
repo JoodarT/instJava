@@ -25,12 +25,16 @@ public class FollowServiceImpl implements FollowService {
     @Transactional
     public FollowResponseDto followUser(Long followeeId) {
         User currentUser = userService.getRequiredCurrentUser();
-        followUser(currentUser.getId(), followeeId);
+        if (currentUser.getId().equals(followeeId)) {
+            throw new IllegalArgumentException("Вы не можете подписаться на самого себя");
+        }
+
+        boolean followed = followUser(currentUser.getId(), followeeId);
         long followersCount = getUserFollowerCount(followeeId);
 
         return FollowResponseDto.builder()
                 .userId(followeeId)
-                .following(true)
+                .following(followed || isFollowing(currentUser.getId(), followeeId))
                 .followersCount(followersCount)
                 .build();
     }
@@ -39,6 +43,10 @@ public class FollowServiceImpl implements FollowService {
     @Transactional
     public FollowResponseDto unfollowUser(Long followeeId) {
         User currentUser = userService.getRequiredCurrentUser();
+        if (currentUser.getId().equals(followeeId)) {
+            throw new IllegalArgumentException("Вы не можете отписаться от самого себя");
+        }
+
         unfollowUser(currentUser.getId(), followeeId);
         long followersCount = getUserFollowerCount(followeeId);
 
