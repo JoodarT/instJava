@@ -20,12 +20,10 @@ public class UserProfileResponseDto {
     private String bio;
     private String avatarPath;
 
-    // Счетчики для профиля
     private long postsCount;
     private long followersCount;
     private long followingCount;
 
-    // Флаги для отображения кнопок (Подписаться / Отписаться / Редактировать)
     private boolean isFollowing;
     private boolean isCurrentUser;
 

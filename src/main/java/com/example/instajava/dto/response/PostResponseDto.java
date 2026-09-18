@@ -21,16 +21,13 @@ public class PostResponseDto {
     private String caption;
     private LocalDateTime createdAt;
 
-    // Информация об авторе публикации (аватар, логин, имя)
     private UserSummaryResponseDto author;
 
-    // Счетчики
     private long likesCount;
     private long commentsCount;
 
-    // Флаги контекста (для UI кнопок)
-    private boolean isLikedByCurrentUser; // закрашивать ли сердечко
-    private boolean isOwner;               // показывать ли кнопку "Удалить публикацию"
+    private boolean isLikedByCurrentUser;
+    private boolean isOwner;
 
     public static PostResponseDto from(Post post,
                                        long likesCount,

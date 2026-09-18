@@ -4,14 +4,8 @@ import com.example.instajava.dto.response.FollowResponseDto;
 
 public interface FollowService {
 
-    /**
-     * Подписаться от имени текущего авторизованного пользователя
-     */
     FollowResponseDto followUser(Long followeeId);
 
-    /**
-     * Отписаться от имени текущего авторизованного пользователя
-     */
     FollowResponseDto unfollowUser(Long followeeId);
 
     long getUserFollowerCount(Long userId);

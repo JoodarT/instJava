@@ -15,5 +15,5 @@ public class LikeResponseDto {
 
     private Long postId;
     private long likesCount;
-    private boolean liked; // true — лайк поставлен, false — снят
+    private boolean liked;
 }

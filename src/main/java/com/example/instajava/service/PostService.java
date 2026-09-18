@@ -9,9 +9,6 @@ import java.util.List;
 
 public interface PostService {
 
-    /**
-     * Создание поста от имени текущего авторизованного пользователя
-     */
     PostResponseDto createPost(PostCreateRequestDto request);
 
     PostResponseDto createPost(MultipartFile image, String caption, Long authorId);
@@ -22,16 +19,10 @@ public interface PostService {
 
     List<PostResponseDto> getUserPosts(String username);
 
-    /**
-     * Лента новостей текущего пользователя
-     */
     List<PostResponseDto> getFeed();
 
     List<PostResponseDto> getFeed(Long currentUserId);
 
-    /**
-     * Удаление поста от имени текущего пользователя с проверкой прав
-     */
     void deletePost(Long postId);
 
     void deletePost(Long postId, Long currentUserId);

@@ -1,7 +1,6 @@
 package com.example.instajava.service;
 
 import com.example.instajava.dto.request.RegistrationRequest;
-import com.example.instajava.dto.response.UserProfileResponseDto;
 import com.example.instajava.dto.response.UserResponseDto;
 import com.example.instajava.dto.response.UserSummaryResponseDto;
 import com.example.instajava.models.User;
@@ -15,8 +14,6 @@ public interface UserService {
 
     List<UserSummaryResponseDto> search(String query);
 
-    UserProfileResponseDto getUserProfile(String username);
-
     User findById(Long id);
 
     User findByUsername(String username);
@@ -25,9 +22,6 @@ public interface UserService {
 
     Optional<User> getCurrentUser();
 
-    /**
-     * Получить текущего авторизованного пользователя или выбросить AccessDeniedException
-     */
     User getRequiredCurrentUser();
 
     boolean existsUserById(Long userId);

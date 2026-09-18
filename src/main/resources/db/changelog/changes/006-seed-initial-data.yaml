@@ -55,6 +55,18 @@ databaseChangeLog:
               - column: { name: avatar_path, value: "/images/default-avatar.png" }
               - column: { name: created_at, valueComputed: "CURRENT_TIMESTAMP" }
 
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: id, valueNumeric: 5 }
+              - column: { name: username, value: "mike_beats" }
+              - column: { name: email, value: "mike@example.com" }
+              - column: { name: password_hash, value: "$2a$12$lyp.Y1zym2Wj7/MzptfiCev5RWJVR9hPRI4yGwXZn2hjsk5VekUhW" }
+              - column: { name: full_name, value: "Mike Turner" }
+              - column: { name: bio, value: "Music producer & vinyl collector 🎧🎵" }
+              - column: { name: avatar_path, value: "/images/default-avatar.png" }
+              - column: { name: created_at, valueComputed: "CURRENT_TIMESTAMP" }
+
         # ==========================================
         # 2. ПОДПИСКИ (FOLLOWS)
         # ==========================================
@@ -100,6 +112,32 @@ databaseChangeLog:
               - column: { name: followee_id, valueNumeric: 1 }
               - column: { name: created_at, valueComputed: "CURRENT_TIMESTAMP" }
 
+        # Mike подписан на John и Jane; John и Kate подписаны на Mike
+        - insert:
+            tableName: follows
+            columns:
+              - column: { name: follower_id, valueNumeric: 5 }
+              - column: { name: followee_id, valueNumeric: 1 }
+              - column: { name: created_at, valueComputed: "CURRENT_TIMESTAMP" }
+        - insert:
+            tableName: follows
+            columns:
+              - column: { name: follower_id, valueNumeric: 5 }
+              - column: { name: followee_id, valueNumeric: 2 }
+              - column: { name: created_at, valueComputed: "CURRENT_TIMESTAMP" }
+        - insert:
+            tableName: follows
+            columns:
+              - column: { name: follower_id, valueNumeric: 1 }
+              - column: { name: followee_id, valueNumeric: 5 }
+              - column: { name: created_at, valueComputed: "CURRENT_TIMESTAMP" }
+        - insert:
+            tableName: follows
+            columns:
+              - column: { name: follower_id, valueNumeric: 4 }
+              - column: { name: followee_id, valueNumeric: 5 }
+              - column: { name: created_at, valueComputed: "CURRENT_TIMESTAMP" }
+
         # ==========================================
         # 3. ПУБЛИКАЦИИ (POSTS)
         # ==========================================
@@ -108,7 +146,7 @@ databaseChangeLog:
             columns:
               - column: { name: id, valueNumeric: 1 }
               - column: { name: author_id, valueNumeric: 1 }
-              - column: { name: image_path, value: "/uploads/sample-travel.jpg" }
+              - column: { name: image_path, value: "/images/seed/sample-travel.jpg" }
               - column: { name: caption, value: "Sunset in the mountains! 🌄" }
               - column: { name: created_at, valueComputed: "CURRENT_TIMESTAMP" }
 
@@ -117,7 +155,7 @@ databaseChangeLog:
             columns:
               - column: { name: id, valueNumeric: 2 }
               - column: { name: author_id, valueNumeric: 1 }
-              - column: { name: image_path, value: "/uploads/sample-city.jpg" }
+              - column: { name: image_path, value: "/images/seed/sample-city.jpg" }
               - column: { name: caption, value: "Morning walk around the old city streets 🏙️" }
               - column: { name: created_at, valueComputed: "CURRENT_TIMESTAMP" }
 
@@ -126,7 +164,7 @@ databaseChangeLog:
             columns:
               - column: { name: id, valueNumeric: 3 }
               - column: { name: author_id, valueNumeric: 2 }
-              - column: { name: image_path, value: "/uploads/sample-coffee.jpg" }
+              - column: { name: image_path, value: "/images/seed/sample-coffee.jpg" }
               - column: { name: caption, value: "Found the coziest coffee shop today ☕❤️" }
               - column: { name: created_at, valueComputed: "CURRENT_TIMESTAMP" }
 
@@ -135,8 +173,17 @@ databaseChangeLog:
             columns:
               - column: { name: id, valueNumeric: 4 }
               - column: { name: author_id, valueNumeric: 3 }
-              - column: { name: image_path, value: "/uploads/sample-code.jpg" }
+              - column: { name: image_path, value: "/images/seed/sample-code.jpg" }
               - column: { name: caption, value: "Refactoring Spring Security & Liquibase migrations 🚀" }
+              - column: { name: created_at, valueComputed: "CURRENT_TIMESTAMP" }
+
+        - insert:
+            tableName: posts
+            columns:
+              - column: { name: id, valueNumeric: 5 }
+              - column: { name: author_id, valueNumeric: 5 }
+              - column: { name: image_path, value: "/images/seed/sample-music.jpg" }
+              - column: { name: caption, value: "Studio session vibes 🎧🎶" }
               - column: { name: created_at, valueComputed: "CURRENT_TIMESTAMP" }
 
         # ==========================================
@@ -176,6 +223,20 @@ databaseChangeLog:
               - column: { name: post_id, valueNumeric: 3 }
               - column: { name: created_at, valueComputed: "CURRENT_TIMESTAMP" }
 
+        # Пост 5 (Mike) лайкнули John и Jane
+        - insert:
+            tableName: likes
+            columns:
+              - column: { name: user_id, valueNumeric: 1 }
+              - column: { name: post_id, valueNumeric: 5 }
+              - column: { name: created_at, valueComputed: "CURRENT_TIMESTAMP" }
+        - insert:
+            tableName: likes
+            columns:
+              - column: { name: user_id, valueNumeric: 2 }
+              - column: { name: post_id, valueNumeric: 5 }
+              - column: { name: created_at, valueComputed: "CURRENT_TIMESTAMP" }
+
         # ==========================================
         # 5. КОММЕНТАРИИ (COMMENTS)
         # ==========================================
@@ -206,14 +267,23 @@ databaseChangeLog:
               - column: { name: text, value: "Looks awesome, need to visit it too!" }
               - column: { name: created_at, valueComputed: "CURRENT_TIMESTAMP" }
 
+        - insert:
+            tableName: comments
+            columns:
+              - column: { name: id, valueNumeric: 4 }
+              - column: { name: post_id, valueNumeric: 5 }
+              - column: { name: author_id, valueNumeric: 2 }
+              - column: { name: text, value: "This is fire, send me the playlist!" }
+              - column: { name: created_at, valueComputed: "CURRENT_TIMESTAMP" }
+
   - changeSet:
       id: 007-restart-sequences
       author: Bolot Azatov
       changes:
         - sql:
             sql: |
-              ALTER TABLE users ALTER COLUMN id RESTART WITH 10;
-              ALTER TABLE posts ALTER COLUMN id RESTART WITH 10;
-              ALTER TABLE comments ALTER COLUMN id RESTART WITH 10;
-              ALTER TABLE likes ALTER COLUMN id RESTART WITH 10;
-              ALTER TABLE follows ALTER COLUMN id RESTART WITH 10;
+              ALTER TABLE users ALTER COLUMN id RESTART WITH 50;
+              ALTER TABLE posts ALTER COLUMN id RESTART WITH 50;
+              ALTER TABLE comments ALTER COLUMN id RESTART WITH 50;
+              ALTER TABLE likes ALTER COLUMN id RESTART WITH 50;
+              ALTER TABLE follows ALTER COLUMN id RESTART WITH 50;

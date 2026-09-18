@@ -1,15 +1,12 @@
 package com.example.instajava.service.impl;
 
 import com.example.instajava.dto.request.RegistrationRequest;
-import com.example.instajava.dto.response.UserProfileResponseDto;
 import com.example.instajava.dto.response.UserResponseDto;
 import com.example.instajava.dto.response.UserSummaryResponseDto;
 import com.example.instajava.exception.DuplicateUserException;
 import com.example.instajava.exception.ResourceNotFoundException;
 import com.example.instajava.models.User;
 import com.example.instajava.repository.UserRepository;
-import com.example.instajava.service.FollowService;
-import com.example.instajava.service.PostService;
 import com.example.instajava.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,8 +25,6 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final FollowService followService;
-    private final PostService postService;
     private final CurrentUserProvider currentUserProvider;
 
     @Override
@@ -69,35 +64,6 @@ public class UserServiceImpl implements UserService {
                 .toList();
         log.debug("Найдено {} пользователей по запросу '{}'", results.size(), query);
         return results;
-    }
-
-    @Override
-    public UserProfileResponseDto getUserProfile(String username) {
-        log.debug("Запрос профиля пользователя: '{}'", username);
-        User targetUser = findByUsername(username);
-
-        long postsCount = postService.getUserPostCount(targetUser.getId());
-        long followersCount = followService.getUserFollowerCount(targetUser.getId());
-        long followingCount = followService.getUserFollowingCount(targetUser.getId());
-
-        Optional<User> currentUserOpt = getCurrentUser();
-
-        boolean isCurrentUser = currentUserOpt
-                .map(cur -> cur.getId().equals(targetUser.getId()))
-                .orElse(false);
-
-        boolean isFollowing = currentUserOpt
-                .map(cur -> followService.isFollowing(cur.getId(), targetUser.getId()))
-                .orElse(false);
-
-        return UserProfileResponseDto.from(
-                targetUser,
-                postsCount,
-                followersCount,
-                followingCount,
-                isFollowing,
-                isCurrentUser
-        );
     }
 
     @Override

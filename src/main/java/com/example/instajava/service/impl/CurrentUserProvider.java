@@ -11,12 +11,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
-/**
- * Разрешает текущего аутентифицированного пользователя из SecurityContext.
- * Зависит только от UserRepository (не от UserService), чтобы не создавать
- * циклическую зависимость между UserService и Post/Comment/Like/FollowService,
- * которым тоже нужно знать "текущего пользователя".
- */
 @Component
 @RequiredArgsConstructor
 public class CurrentUserProvider {

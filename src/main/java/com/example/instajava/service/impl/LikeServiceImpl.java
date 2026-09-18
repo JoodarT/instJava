@@ -1,14 +1,13 @@
 package com.example.instajava.service.impl;
 
 import com.example.instajava.dto.response.LikeResponseDto;
-import com.example.instajava.exception.ResourceNotFoundException;
 import com.example.instajava.models.Like;
 import com.example.instajava.models.Post;
 import com.example.instajava.models.User;
 import com.example.instajava.repository.LikeRepository;
-import com.example.instajava.repository.UserRepository;
 import com.example.instajava.service.LikeService;
 import com.example.instajava.service.PostService;
+import com.example.instajava.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,14 +20,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class LikeServiceImpl implements LikeService {
 
     private final LikeRepository likeRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final PostService postService;
-    private final CurrentUserProvider currentUserProvider;
 
     @Override
     @Transactional
     public LikeResponseDto toggleLike(Long postId) {
-        User currentUser = currentUserProvider.getRequiredCurrentUser();
+        User currentUser = userService.getRequiredCurrentUser();
         Long userId = currentUser.getId();
 
         boolean alreadyLiked = isPostLikedByUser(postId, userId);
@@ -61,8 +59,7 @@ public class LikeServiceImpl implements LikeService {
             return false;
         }
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Пользователь с id " + userId + " не найден"));
+        User user = userService.findById(userId);
         Post post = postService.getPostEntityById(postId);
 
         Like like = Like.builder()

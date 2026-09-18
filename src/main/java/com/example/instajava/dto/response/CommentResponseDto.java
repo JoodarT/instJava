@@ -21,11 +21,8 @@ public class CommentResponseDto {
     private String text;
     private LocalDateTime createdAt;
 
-    // Автор комментария
     private UserSummaryResponseDto author;
 
-    // Флаг: может ли текущий пользователь удалить этот комментарий
-    // (По ТЗ: только автор поста под своей публикацией)
     private boolean canDelete;
 
     public static CommentResponseDto from(Comment comment, boolean canDelete) {

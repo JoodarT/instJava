@@ -12,9 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-/**
- * Looks users up by username OR email, since the login form accepts either.
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j

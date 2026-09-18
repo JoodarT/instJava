@@ -14,22 +14,12 @@ import java.util.Optional;
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long> {
 
-    /**
-     * Все публикации пользователя для страницы профиля (от новых к старым)
-     */
     List<Post> findAllByAuthorOrderByCreatedAtDesc(User author);
 
     List<Post> findAllByAuthorIdOrderByCreatedAtDesc(Long authorId);
 
-    /**
-     * Количество публикаций пользователя (для счетчика в профиле)
-     */
     long countByAuthorId(Long authorId);
 
-    /**
-     * Лента новостей: посты авторов, на которых подписан пользователь,
-     * отсортированные от самых новых к старым.
-     */
     @Query("""
             SELECT p FROM Post p
             JOIN FETCH p.author
@@ -40,9 +30,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             """)
     List<Post> findFeedByUserId(@Param("userId") Long userId);
 
-    /**
-     * Получение поста вместе с автором одним запросом (для страницы поста)
-     */
     @Query("SELECT p FROM Post p JOIN FETCH p.author WHERE p.id = :id")
     Optional<Post> findByIdWithAuthor(@Param("id") Long id);
 }

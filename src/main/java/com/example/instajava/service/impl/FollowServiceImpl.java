@@ -5,8 +5,8 @@ import com.example.instajava.exception.ResourceNotFoundException;
 import com.example.instajava.models.Follow;
 import com.example.instajava.models.User;
 import com.example.instajava.repository.FollowRepository;
-import com.example.instajava.repository.UserRepository;
 import com.example.instajava.service.FollowService;
+import com.example.instajava.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,13 +19,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class FollowServiceImpl implements FollowService {
 
     private final FollowRepository followRepository;
-    private final UserRepository userRepository;
-    private final CurrentUserProvider currentUserProvider;
+    private final UserService userService;
 
     @Override
     @Transactional
     public FollowResponseDto followUser(Long followeeId) {
-        User currentUser = currentUserProvider.getRequiredCurrentUser();
+        User currentUser = userService.getRequiredCurrentUser();
         followUser(currentUser.getId(), followeeId);
         long followersCount = getUserFollowerCount(followeeId);
 
@@ -39,7 +38,7 @@ public class FollowServiceImpl implements FollowService {
     @Override
     @Transactional
     public FollowResponseDto unfollowUser(Long followeeId) {
-        User currentUser = currentUserProvider.getRequiredCurrentUser();
+        User currentUser = userService.getRequiredCurrentUser();
         unfollowUser(currentUser.getId(), followeeId);
         long followersCount = getUserFollowerCount(followeeId);
 
@@ -57,8 +56,8 @@ public class FollowServiceImpl implements FollowService {
             return false;
         }
 
-        User follower = findUserOrThrow(followerId);
-        User followee = findUserOrThrow(followeeId);
+        User follower = userService.findById(followerId);
+        User followee = userService.findById(followeeId);
 
         if (followRepository.existsByFollowerIdAndFolloweeId(follower.getId(), followee.getId())) {
             return false;
@@ -76,7 +75,7 @@ public class FollowServiceImpl implements FollowService {
 
     @Override
     public long getUserFollowerCount(Long userId) {
-        if (!userRepository.existsById(userId)) {
+        if (!userService.existsUserById(userId)) {
             throw new ResourceNotFoundException("Пользователь с id " + userId + " не найден");
         }
         return followRepository.countByFolloweeId(userId);
@@ -84,7 +83,7 @@ public class FollowServiceImpl implements FollowService {
 
     @Override
     public long getUserFollowingCount(Long userId) {
-        if (!userRepository.existsById(userId)) {
+        if (!userService.existsUserById(userId)) {
             throw new ResourceNotFoundException("Пользователь с id " + userId + " не найден");
         }
         return followRepository.countByFollowerId(userId);
@@ -112,10 +111,5 @@ public class FollowServiceImpl implements FollowService {
         followRepository.deleteByFollowerIdAndFolloweeId(followerId, followeeId);
         log.info("Пользователь id={} отписался от id={}", followerId, followeeId);
         return true;
-    }
-
-    private User findUserOrThrow(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Пользователь с id " + userId + " не найден"));
     }
 }

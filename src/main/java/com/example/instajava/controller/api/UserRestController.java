@@ -5,6 +5,7 @@ import com.example.instajava.dto.response.UserProfileResponseDto;
 import com.example.instajava.dto.response.UserSummaryResponseDto;
 import com.example.instajava.service.PostService;
 import com.example.instajava.service.UserService;
+import com.example.instajava.service.impl.UserProfileFacade;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ public class UserRestController {
 
     private final UserService userService;
     private final PostService postService;
+    private final UserProfileFacade userProfileFacade;
 
     @Operation(summary = "Поиск пользователей по логину, email или имени")
     @GetMapping("/search")
@@ -35,7 +37,7 @@ public class UserRestController {
     @Operation(summary = "Публичный профиль пользователя со счетчиками")
     @GetMapping("/{username}")
     public ResponseEntity<UserProfileResponseDto> getProfile(@PathVariable String username) {
-        return ResponseEntity.ok(userService.getUserProfile(username));
+        return ResponseEntity.ok(userProfileFacade.getUserProfile(username));
     }
 
     @Operation(summary = "Публикации пользователя (для сетки в профиле)")

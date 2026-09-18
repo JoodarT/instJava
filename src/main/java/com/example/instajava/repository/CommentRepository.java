@@ -12,9 +12,6 @@ import java.util.Optional;
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
-    /**
-     * Комментарии к посту в хронологическом порядке (от самого первого)
-     */
     @Query("""
             SELECT c FROM Comment c
             JOIN FETCH c.author
@@ -23,14 +20,8 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
             """)
     List<Comment> findAllByPostIdOrderByCreatedAtAsc(@Param("postId") Long postId);
 
-    /**
-     * Количество комментариев под постом (для счетчика)
-     */
     long countByPostId(Long postId);
 
-    /**
-     * Поиск комментария с подгрузкой поста и автора (для проверки прав на удаление)
-     */
     @Query("SELECT c FROM Comment c JOIN FETCH c.post p JOIN FETCH p.author WHERE c.id = :id")
     Optional<Comment> findByIdWithPostAndAuthor(@Param("id") Long id);
 }
