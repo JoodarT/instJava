@@ -44,6 +44,11 @@ public class FileStorageServiceImpl implements FileStorageService {
             throw new IllegalArgumentException("Файл не может быть пустым");
         }
 
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new IllegalArgumentException("Допускаются только файлы изображений");
+        }
+
         String originalFilename = file.getOriginalFilename();
         String extension = "";
         if (originalFilename != null && originalFilename.contains(".")) {
