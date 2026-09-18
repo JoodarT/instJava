@@ -7,9 +7,9 @@ import com.example.instajava.models.Comment;
 import com.example.instajava.models.Post;
 import com.example.instajava.models.User;
 import com.example.instajava.repository.CommentRepository;
+import com.example.instajava.repository.UserRepository;
 import com.example.instajava.service.CommentService;
 import com.example.instajava.service.PostService;
-import com.example.instajava.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
@@ -26,13 +26,14 @@ import java.util.Optional;
 public class CommentServiceImpl implements CommentService {
 
     private final CommentRepository commentRepository;
-    private final UserService userService;
+    private final UserRepository userRepository;
     private final PostService postService;
+    private final CurrentUserProvider currentUserProvider;
 
     @Override
     @Transactional
     public CommentResponseDto addComment(Long postId, CommentCreateRequestDto request) {
-        User currentUser = userService.getRequiredCurrentUser();
+        User currentUser = currentUserProvider.getRequiredCurrentUser();
         return addComment(postId, currentUser.getId(), request.getText());
     }
 
@@ -43,7 +44,7 @@ public class CommentServiceImpl implements CommentService {
             throw new IllegalArgumentException("Текст комментария не может быть пустым");
         }
 
-        User author = userService.findById(userId);
+        User author = findUserOrThrow(userId);
         Post post = postService.getPostEntityById(postId);
 
         Comment comment = Comment.builder()
@@ -63,7 +64,7 @@ public class CommentServiceImpl implements CommentService {
     public List<CommentResponseDto> getCommentsByPostId(Long postId) {
         log.debug("Запрос комментариев для публикации id={}", postId);
         Post post = postService.getPostEntityById(postId);
-        Optional<User> currentUserOpt = userService.getCurrentUser();
+        Optional<User> currentUserOpt = currentUserProvider.getCurrentUser();
 
         boolean isPostAuthor = currentUserOpt
                 .map(u -> u.getId().equals(post.getAuthor().getId()))
@@ -77,7 +78,7 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @Transactional
     public void deleteComment(Long commentId) {
-        User currentUser = userService.getRequiredCurrentUser();
+        User currentUser = currentUserProvider.getRequiredCurrentUser();
         deleteComment(commentId, currentUser.getId());
     }
 
@@ -100,5 +101,10 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public long getPostCommentsCount(Long postId) {
         return commentRepository.countByPostId(postId);
+    }
+
+    private User findUserOrThrow(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Пользователь с id " + userId + " не найден"));
     }
 }
