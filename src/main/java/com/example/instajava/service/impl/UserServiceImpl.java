@@ -11,12 +11,8 @@ import com.example.instajava.repository.UserRepository;
 import com.example.instajava.service.FollowService;
 import com.example.instajava.service.PostService;
 import com.example.instajava.service.UserService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +22,7 @@ import java.util.Optional;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
 
@@ -33,16 +30,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final FollowService followService;
     private final PostService postService;
-
-    public UserServiceImpl(UserRepository userRepository,
-                           PasswordEncoder passwordEncoder,
-                           @Lazy FollowService followService,
-                           @Lazy PostService postService) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.followService = followService;
-        this.postService = postService;
-    }
+    private final CurrentUserProvider currentUserProvider;
 
     @Override
     @Transactional
@@ -141,17 +129,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Optional<User> getCurrentUser() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken) {
-            return Optional.empty();
-        }
-        return userRepository.findByUsername(auth.getName());
+        return currentUserProvider.getCurrentUser();
     }
 
     @Override
     public User getRequiredCurrentUser() {
-        return getCurrentUser()
-                .orElseThrow(() -> new AccessDeniedException("Для выполнения действия требуется авторизация"));
+        return currentUserProvider.getRequiredCurrentUser();
     }
 
     @Override
