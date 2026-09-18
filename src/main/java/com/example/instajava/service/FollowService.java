@@ -1,6 +1,9 @@
 package com.example.instajava.service;
 
 import com.example.instajava.dto.response.FollowResponseDto;
+import com.example.instajava.dto.response.UserSummaryResponseDto;
+
+import java.util.List;
 
 public interface FollowService {
 
@@ -17,4 +20,8 @@ public interface FollowService {
     boolean unfollowUser(Long followerId, Long followeeId);
 
     boolean isFollowing(Long followerId, Long followeeId);
+
+    List<UserSummaryResponseDto> getFollowers(Long userId);
+
+    List<UserSummaryResponseDto> getFollowing(Long userId);
 }
