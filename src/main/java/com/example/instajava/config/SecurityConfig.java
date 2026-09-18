@@ -4,6 +4,7 @@ import com.example.instajava.service.impl.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -35,11 +36,17 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/register", "/login",
+                                "/register", "/login", "/error",
                                 "/users/**", "/search",
                                 "/uploads/**",
                                 "/css/**", "/js/**", "/images/**",
                                 "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/users/*",
+                                "/api/users/*/posts",
+                                "/api/posts/*",
+                                "/api/posts/*/comments"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

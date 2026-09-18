@@ -1,0 +1,400 @@
+:root {
+    --border-color: #dbdbdb;
+    --text-muted: #737373;
+    --accent: #0095f6;
+    --danger: #ed4956;
+    --bg: #fafafa;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: #262626;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* --- Top bar --- */
+.topbar {
+    background: #fff;
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.topbar-inner {
+    max-width: 935px;
+    margin: 0 auto;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.brand {
+    font-size: 22px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.search-form {
+    flex: 1;
+}
+
+.search-form input {
+    width: 100%;
+    max-width: 300px;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg);
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+}
+
+.logout-form {
+    display: inline;
+}
+
+/* --- Page container --- */
+.page {
+    max-width: 600px;
+    margin: 24px auto;
+    padding: 0 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* --- Buttons --- */
+button {
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.link-button {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.link-button.danger {
+    color: var(--danger);
+}
+
+.btn-follow,
+.post-form button[type="submit"],
+.search-page-form button {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.btn-follow.following {
+    background: #efefef;
+    color: #262626;
+}
+
+/* --- Avatars ---
+   Инициал логина всегда лежит внутри .avatar как текст; если задан avatarPath,
+   <img> абсолютно позиционируется поверх и закрывает его. Если картинка не
+   загрузилась (404 и т.п.), inline onerror удаляет <img>, инициал становится виден. */
+.avatar {
+    position: relative;
+    border-radius: 50%;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #efefef;
+    color: #555;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.avatar img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+}
+
+.avatar-lg {
+    width: 96px;
+    height: 96px;
+    font-size: 36px;
+}
+
+/* --- Post card --- */
+.post-card {
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.post-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+}
+
+.post-author {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+}
+
+.post-image {
+    width: 100%;
+    display: block;
+    max-height: 600px;
+    object-fit: cover;
+    background: #f0f0f0;
+}
+
+.post-body {
+    padding: 10px 14px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.post-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-like {
+    background: none;
+    border: none;
+    font-size: 24px;
+    line-height: 1;
+    padding: 0;
+    color: #262626;
+}
+
+.btn-like.liked {
+    color: var(--danger);
+}
+
+.likes-count {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.post-caption {
+    margin: 0;
+    font-size: 14px;
+}
+
+/* --- Comments --- */
+.comments-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 8px;
+}
+
+.comments-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 240px;
+    overflow-y: auto;
+}
+
+.comment {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.add-comment-form {
+    display: flex;
+    gap: 8px;
+}
+
+.add-comment-form input {
+    flex: 1;
+    border: none;
+    border-top: 1px solid var(--border-color);
+    padding: 6px 0;
+    font-size: 14px;
+}
+
+.add-comment-form input:focus {
+    outline: none;
+}
+
+.add-comment-form button {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-weight: 600;
+}
+
+/* --- Empty state --- */
+.empty-state {
+    text-align: center;
+    padding: 40px 16px;
+    color: var(--text-muted);
+}
+
+/* --- Profile --- */
+.profile-header {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.profile-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.profile-name-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.profile-name-row h1 {
+    font-size: 20px;
+    margin: 0;
+    font-weight: 400;
+}
+
+.profile-fullname {
+    font-weight: 600;
+    margin: 0;
+}
+
+.profile-bio {
+    margin: 0;
+    white-space: pre-wrap;
+}
+
+.profile-stats {
+    display: flex;
+    gap: 24px;
+    font-size: 14px;
+}
+
+.profile-posts {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* --- Search --- */
+.search-page-form {
+    display: flex;
+    gap: 8px;
+}
+
+.search-page-form input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.user-results {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.user-result {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.user-results li:last-child .user-result {
+    border-bottom: none;
+}
+
+/* --- Forms (auth + post create) --- */
+.post-form {
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.post-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.post-form textarea {
+    resize: vertical;
+    min-height: 80px;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-family: inherit;
+}
+
+.form-error {
+    color: var(--danger);
+    font-size: 14px;
+}
