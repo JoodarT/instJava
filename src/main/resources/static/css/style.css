@@ -423,3 +423,41 @@ button {
     color: var(--danger);
     font-size: 14px;
 }
+
+/* --- Modal Dialog --- */
+.users-dialog {
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 0;
+    width: 90%;
+    max-width: 400px;
+    background: #fff;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.users-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.btn-close-modal {
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.profile-stats .btn-show-users {
+    color: inherit;
+    font-size: inherit;
+    cursor: pointer;
+}
+.profile-stats .btn-show-users:hover {
+    opacity: 0.7;
+}

@@ -16,6 +16,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,9 +51,10 @@ public class CommentServiceImpl implements CommentService {
                 .post(post)
                 .author(author)
                 .text(text.trim())
+                .createdAt(LocalDateTime.now())
                 .build();
 
-        Comment savedComment = commentRepository.save(comment);
+        Comment savedComment = commentRepository.saveAndFlush(comment);
         log.info("Пользователь '{}' оставил комментарий id={} к посту id={}", author.getUsername(), savedComment.getId(), postId);
 
         boolean canDelete = post.getAuthor().getId().equals(userId);

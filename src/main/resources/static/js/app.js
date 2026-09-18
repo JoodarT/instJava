@@ -181,6 +181,74 @@
                     alert((err && err.message) || 'Не удалось выполнить действие. Возможно, нужно войти в систему.');
                 });
         }
+
+        const showUsersBtn = e.target.closest('.btn-show-users');
+        if (showUsersBtn) {
+            const userId = showUsersBtn.dataset.userId;
+            const type = showUsersBtn.dataset.type;
+            const title = showUsersBtn.dataset.title;
+
+            const dialog = document.getElementById('users-dialog');
+            const titleEl = document.getElementById('modal-title');
+            const listEl = document.getElementById('modal-users-list');
+
+            if (!dialog) return;
+
+            titleEl.textContent = title;
+            listEl.innerHTML = '<li style="padding: 16px; text-align: center; color: var(--text-muted);">Загрузка...</li>';
+            dialog.showModal();
+
+            fetch('/api/users/' + userId + '/' + type)
+                .then(function (res) {
+                    if (!res.ok) throw new Error('Ошибка загрузки');
+                    return res.json();
+                })
+                .then(function (users) {
+                    listEl.innerHTML = '';
+                    if (!users || users.length === 0) {
+                        listEl.innerHTML = '<li style="padding: 16px; text-align: center; color: var(--text-muted);">Список пуст</li>';
+                        return;
+                    }
+                    users.forEach(function (user) {
+                        const li = document.createElement('li');
+                        const a = document.createElement('a');
+                        a.href = '/users/' + encodeURIComponent(user.username);
+                        a.className = 'user-result';
+
+                        let avatarHtml = '<span class="avatar avatar-sm">';
+                        if (user.avatarPath) {
+                            avatarHtml += '<img src="' + escapeHtml(user.avatarPath) + '" alt="' + escapeHtml(user.username) + '" onerror="this.remove()">';
+                        }
+                        avatarHtml += escapeHtml(user.username.charAt(0).toUpperCase()) + '</span>';
+
+                        let infoHtml = '<span><strong>' + escapeHtml(user.username) + '</strong>';
+                        if (user.fullName) {
+                            infoHtml += ' — ' + escapeHtml(user.fullName);
+                        }
+                        infoHtml += '</span>';
+
+                        a.innerHTML = avatarHtml + infoHtml;
+                        li.appendChild(a);
+                        listEl.appendChild(li);
+                    });
+                })
+                .catch(function () {
+                    listEl.innerHTML = '<li style="padding: 16px; text-align: center; color: var(--danger);">Не удалось загрузить список</li>';
+                });
+            return;
+        }
+
+        const closeDialogBtn = e.target.closest('.btn-close-modal');
+        if (closeDialogBtn) {
+            const dialog = document.getElementById('users-dialog');
+            if (dialog) dialog.close();
+            return;
+        }
+
+        const dialog = document.getElementById('users-dialog');
+        if (dialog && e.target === dialog) {
+            dialog.close();
+        }
     });
 
     document.addEventListener('submit', function (e) {

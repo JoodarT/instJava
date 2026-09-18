@@ -1,6 +1,7 @@
 package com.example.instajava.service.impl;
 
 import com.example.instajava.dto.response.FollowResponseDto;
+import com.example.instajava.dto.response.UserSummaryResponseDto;
 import com.example.instajava.exception.ResourceNotFoundException;
 import com.example.instajava.models.Follow;
 import com.example.instajava.models.User;
@@ -11,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @Slf4j
@@ -119,5 +122,25 @@ public class FollowServiceImpl implements FollowService {
         followRepository.deleteByFollowerIdAndFolloweeId(followerId, followeeId);
         log.info("Пользователь id={} отписался от id={}", followerId, followeeId);
         return true;
+    }
+
+    @Override
+    public List<UserSummaryResponseDto> getFollowers(Long userId) {
+        if (!userService.existsUserById(userId)) {
+            throw new ResourceNotFoundException("Пользователь с id " + userId + " не найден");
+        }
+        return followRepository.findFollowersByUserId(userId).stream()
+                .map(UserSummaryResponseDto::fromEntity)
+                .toList();
+    }
+
+    @Override
+    public List<UserSummaryResponseDto> getFollowing(Long userId) {
+        if (!userService.existsUserById(userId)) {
+            throw new ResourceNotFoundException("Пользователь с id " + userId + " не найден");
+        }
+        return followRepository.findFollowingByUserId(userId).stream()
+                .map(UserSummaryResponseDto::fromEntity)
+                .toList();
     }
 }
