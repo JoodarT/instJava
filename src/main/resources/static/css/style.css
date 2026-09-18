@@ -277,6 +277,31 @@ button {
     color: var(--text-muted);
 }
 
+/* --- Error page --- */
+.error-page {
+    text-align: center;
+    padding: 60px 16px;
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.error-page h1 {
+    font-size: 48px;
+    margin: 0 0 8px;
+    color: var(--danger);
+}
+
+.error-page p {
+    color: var(--text-muted);
+    margin: 0 0 16px;
+}
+
+.error-page a {
+    color: var(--accent);
+    font-weight: 600;
+}
+
 /* --- Profile --- */
 .profile-header {
     display: flex;
